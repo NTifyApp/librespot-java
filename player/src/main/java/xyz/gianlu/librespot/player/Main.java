@@ -15,6 +15,7 @@
  *
  * Modifications made by [Gianluca Beil]:
  * - Remove log4j dependency and dependent code
+ * - Modified now broken code due to changes in ZeroconfServer
  */
 
 package xyz.gianlu.librespot.player;
@@ -67,6 +68,11 @@ public class Main {
                         session.addReconnectionListener(shellEvents);
                         lastPlayer.addEventsListener(shellEvents);
                     }
+                }
+
+                @Override
+                public void cancelled() {
+
                 }
             });
 
