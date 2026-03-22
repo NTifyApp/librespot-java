@@ -12,6 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications made by [Gianluca Beil]:
+ * - Removed Facebook authentication
  */
 
 package xyz.gianlu.librespot.core;
@@ -1012,19 +1015,6 @@ public final class Session implements Closeable {
 
             try (OAuth oauth = new OAuth(KEYMASTER_CLIENT_ID, "http://127.0.0.1:5588/login")) {
                 loginCredentials = oauth.flow();
-            } catch (InterruptedException ignored) {
-            }
-
-            return this;
-        }
-
-        /**
-         * Authenticates with your Facebook account, will prompt to open a link in the browser. This locks until completion.
-         */
-        @NotNull
-        public Builder facebook() throws IOException {
-            try (FacebookAuthenticator authenticator = new FacebookAuthenticator()) {
-                loginCredentials = authenticator.lockUntilCredentials();
             } catch (InterruptedException ignored) {
             }
 

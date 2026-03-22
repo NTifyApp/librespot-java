@@ -15,6 +15,7 @@
  *
  * Modifications made by [Gianluca Beil]:
  * - Remove log4j dependency and dependent code
+ * - Removed Facebook authentication
  */
 
 package xyz.gianlu.librespot.player;
@@ -387,9 +388,6 @@ public final class FileConfiguration {
                 .setDeviceId(deviceId());
 
         switch (authStrategy()) {
-            case FACEBOOK:
-                builder.facebook();
-                break;
             case BLOB:
                 builder.blob(authUsername(), Utils.fromBase64(authBlob()));
                 break;
