@@ -16,6 +16,8 @@
  * Modifications made by [Gianluca Beil]:
  * - Removed Facebook authentication
  * - Added url and cancel callback to oauth method signature
+ * - Added the ability to provide a OkHttpClient instance
+ * - Removed SSLSocketFactory being set when a proxy is specified
  */
 
 package xyz.gianlu.librespot.core;
@@ -148,7 +150,7 @@ public final class Session implements Closeable {
 
     @NotNull
     private static OkHttpClient createClient(@NotNull Configuration conf) {
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        OkHttpClient.Builder builder = conf.client == null ? new OkHttpClient.Builder() : conf.client.newBuilder();
         builder.retryOnConnectionFailure(true);
 
         if (conf.proxyEnabled && conf.proxyType != Proxy.Type.DIRECT) {
@@ -166,10 +168,6 @@ public final class Session implements Closeable {
                                 .build();
                     }
                 });
-            }
-            if (conf.proxyType == Proxy.Type.HTTP && conf.proxySSL) {
-                // builder.socketFactory(SSLSocketFactory.getDefault()) throws an error on some okhttp versions
-                builder.socketFactory(new DelegatingSocketFactory(SSLSocketFactory.getDefault()));
             }
         }
 
@@ -1103,13 +1101,14 @@ public final class Session implements Closeable {
 
         // Network
         public final int connectionTimeout;
+        public OkHttpClient client;
 
         private Configuration(boolean proxyEnabled, Proxy.Type proxyType, boolean proxySSL, String proxyAddress,
                               int proxyPort, boolean proxyAuth, String proxyUsername, String proxyPassword,
                               TimeProvider.Method timeSynchronizationMethod, int timeManualCorrection,
                               boolean cacheEnabled, File cacheDir, boolean doCacheCleanUp,
                               boolean storeCredentials, File storedCredentialsFile,
-                              boolean retryOnChunkError, int connectionTimeout) {
+                              boolean retryOnChunkError, int connectionTimeout, OkHttpClient client) {
             this.proxyEnabled = proxyEnabled;
             this.proxyType = proxyType;
             this.proxySSL = proxySSL;
@@ -1127,6 +1126,7 @@ public final class Session implements Closeable {
             this.storedCredentialsFile = storedCredentialsFile;
             this.retryOnChunkError = retryOnChunkError;
             this.connectionTimeout = connectionTimeout;
+            this.client = client;
         }
 
         public static final class Builder {
@@ -1158,6 +1158,7 @@ public final class Session implements Closeable {
 
             // Network
             private int connectionTimeout;
+            private OkHttpClient client;
 
             public Builder() {
             }
@@ -1247,6 +1248,11 @@ public final class Session implements Closeable {
                 return this;
             }
 
+            public Builder setOkHttpClient(OkHttpClient client) {
+                this.client = client;
+                return this;
+            }
+
             @NotNull
             public Configuration build() {
                 return new Configuration(proxyEnabled, proxyType, proxySSL, proxyAddress, proxyPort, proxyAuth,
@@ -1254,7 +1260,7 @@ public final class Session implements Closeable {
                         timeSynchronizationMethod, timeManualCorrection,
                         cacheEnabled, cacheDir, doCacheCleanUp,
                         storeCredentials, storedCredentialsFile,
-                        retryOnChunkError, connectionTimeout);
+                        retryOnChunkError, connectionTimeout, client);
             }
         }
     }
