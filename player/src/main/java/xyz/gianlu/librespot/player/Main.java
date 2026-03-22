@@ -12,12 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications made by [Gianluca Beil]:
+ * - Remove log4j dependency and dependent code
  */
 
 package xyz.gianlu.librespot.player;
 
 
-import org.apache.logging.log4j.core.config.Configurator;
 import org.jetbrains.annotations.NotNull;
 import xyz.gianlu.librespot.ZeroconfServer;
 import xyz.gianlu.librespot.common.Log4JUncaughtExceptionHandler;
@@ -34,7 +36,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException, GeneralSecurityException, Session.SpotifyAuthenticationException, TokenProvider.TokenException {
         FileConfiguration conf = new FileConfiguration(args);
-        Configurator.setRootLevel(conf.loggingLevel());
         Thread.setDefaultUncaughtExceptionHandler(new Log4JUncaughtExceptionHandler());
 
         if (conf.authStrategy() == FileConfiguration.AuthStrategy.ZEROCONF) {

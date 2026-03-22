@@ -34,7 +34,7 @@ The compiled Java protobuf definitions aren't versioned, therefore, if you want 
 The `com.spotify` package is reserved for the generated files. 
 
 ## Logging
-The application uses Log4J for logging purposes, the configuration file is placed inside `lib/src/main/resources`, `player/src/main/resources` or `api/src/main/resources` depending on what you're working with. You can also toggle the log level with `logLevel` option in the configuration.
+The application uses sl4j with a custom logging implementation from NTify.
 
 # Special thanks
 - All the developers of [librespot](https://github.com/librespot-org/librespot) which started this project in Rust

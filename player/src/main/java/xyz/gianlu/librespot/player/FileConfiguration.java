@@ -12,6 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications made by [Gianluca Beil]:
+ * - Remove log4j dependency and dependent code
  */
 
 package xyz.gianlu.librespot.player;
@@ -28,7 +31,6 @@ import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.toml.TomlParser;
 import com.spotify.connectstate.Connect;
-import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -320,11 +322,6 @@ public final class FileConfiguration {
         String path = config.get("auth.credentialsFile");
         if (path == null || path.isEmpty()) return null;
         return new File(path);
-    }
-
-    @NotNull
-    public Level loggingLevel() {
-        return Level.toLevel(config.get("logLevel"));
     }
 
     @NotNull
