@@ -17,6 +17,7 @@
  * - Remove log4j dependency and dependent code
  * - Removed Facebook authentication
  * - Fixed broken code due to changes in Session.java for OAuth authentication
+ * - Removed userpass authentication
  */
 
 package xyz.gianlu.librespot.player;
@@ -392,9 +393,6 @@ public final class FileConfiguration {
         switch (authStrategy()) {
             case BLOB:
                 builder.blob(authUsername(), Utils.fromBase64(authBlob()));
-                break;
-            case USER_PASS:
-                builder.userPass(authUsername(), authPassword());
                 break;
             case STORED:
                 builder.stored();

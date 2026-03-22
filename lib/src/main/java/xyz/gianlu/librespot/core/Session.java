@@ -18,6 +18,7 @@
  * - Added url and cancel callback to oauth method signature
  * - Added the ability to provide a OkHttpClient instance
  * - Removed SSLSocketFactory being set when a proxy is specified
+ * - Removed username and password authentication
  */
 
 package xyz.gianlu.librespot.core;
@@ -1032,25 +1033,6 @@ public final class Session implements Closeable {
                 throw new IllegalStateException("You must specify the device ID first.");
 
             loginCredentials = decryptBlob(deviceId, username, blob);
-            return this;
-        }
-
-        /**
-         * Authenticates with username and password. The credentials won't be saved.
-         *
-         * @param username Your Spotify username
-         * @param password Your Spotify password
-         *
-         * @deprecated Use OAuth instead
-         */
-        @NotNull
-        @Deprecated
-        public Builder userPass(@NotNull String username, @NotNull String password) {
-            loginCredentials = Authentication.LoginCredentials.newBuilder()
-                    .setUsername(username)
-                    .setTyp(Authentication.AuthenticationType.AUTHENTICATION_USER_PASS)
-                    .setAuthData(ByteString.copyFromUtf8(password))
-                    .build();
             return this;
         }
 
