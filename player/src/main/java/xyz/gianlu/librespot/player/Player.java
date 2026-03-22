@@ -12,6 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications made by [Gianluca Beil]:
+ * - Added isPaused function
+ * - Added updateState function
+ * - Added setQueue function
+ * - Added clearQueue function
+ *
  */
 
 package xyz.gianlu.librespot.player;
@@ -234,6 +241,10 @@ public class Player implements Closeable {
         else handlePause();
     }
 
+    public boolean isPaused() {
+        return this.state.isPaused();
+    }
+
     public void pause() {
         handlePause();
     }
@@ -275,6 +286,10 @@ public class Player implements Closeable {
     public void removeFromQueue(@NotNull String uri) {
         state.removeFromQueue(uri);
         state.updated();
+    }
+
+    public void updateState() {
+        this.state.updated();
     }
 
     @NotNull
@@ -773,6 +788,16 @@ public class Player implements Closeable {
     @NotNull
     public Tracks tracks(boolean withQueue) {
         return new Tracks(state.getPrevTracks(), state.getCurrentTrack(), state.getNextTracks(withQueue));
+    }
+
+    public void clearQueue() {
+        state.setQueue(state.getPrevTracks(), Collections.emptyList());
+        state.updated();
+    }
+
+    public void setQueue(List<ContextTrack> tracks) {
+        state.setQueue(state.getPrevTracks(), tracks);
+        state.updated();
     }
 
     /**
