@@ -47,3 +47,7 @@ message BatchedExtensionResponse {
 	optional spotify.extendedmetadata.proto.BatchedExtensionResponseHeader header = 1;
 	repeated spotify.extendedmetadata.proto.EntityExtensionDataArray extended_metadata = 2;
 }
+
+message OnPlatformReputationTrait {
+	optional int32 monthlyListeners = 4;
+}
