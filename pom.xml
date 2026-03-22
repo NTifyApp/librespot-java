@@ -60,7 +60,6 @@
     </properties>
 
     <modules>
-        <module>zeroconf-java</module>
         <module>sink-api</module>
         <module>sink</module>
         <module>decoder-api</module>
