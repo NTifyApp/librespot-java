@@ -64,7 +64,6 @@
         <module>sink-api</module>
         <module>sink</module>
         <module>decoder-api</module>
-        <module>dacp</module>
         <module>lib</module>
         <module>player</module>
         <module>api</module>

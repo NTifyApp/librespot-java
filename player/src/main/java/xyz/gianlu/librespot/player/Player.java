@@ -34,7 +34,6 @@ import xyz.gianlu.librespot.audio.MetadataWrapper;
 import xyz.gianlu.librespot.audio.PlayableContentFeeder;
 import xyz.gianlu.librespot.common.NameThreadFactory;
 import xyz.gianlu.librespot.core.Session;
-import xyz.gianlu.librespot.dacp.DacpMetadataPipe;
 import xyz.gianlu.librespot.json.StationsWrapper;
 import xyz.gianlu.librespot.mercury.MercuryClient;
 import xyz.gianlu.librespot.mercury.MercuryRequests;
@@ -976,93 +975,6 @@ public class Player implements Closeable {
         private final List<EventsListener> listeners = new ArrayList<>();
 
         EventsDispatcher(@NotNull PlayerConfiguration conf) {
-            if (conf.metadataPipe != null) {
-                DacpMetadataPipe dacpPipe = new DacpMetadataPipe(conf.metadataPipe);
-                listeners.add(new Player.EventsListener() {
-                    @Override
-                    public void onContextChanged(@NotNull Player player, @NotNull String newUri) {
-                    }
-
-                    @Override
-                    public void onTrackChanged(@NotNull Player player, @NotNull PlayableId id, @Nullable MetadataWrapper metadata, boolean userInitiated) {
-                    }
-
-                    @Override
-                    public void onPlaybackEnded(@NotNull Player player) {
-                    }
-
-                    @Override
-                    public void onPlaybackPaused(@NotNull Player player, long trackTime) {
-                        dacpPipe.sendPipeFlush();
-                    }
-
-                    @Override
-                    public void onPlaybackResumed(@NotNull Player player, long trackTime) {
-                        MetadataWrapper metadata = player.currentMetadata();
-                        if (metadata == null) return;
-
-                        onMetadataAvailable(player, metadata);
-                    }
-
-                    @Override
-                    public void onPlaybackFailed(@NotNull Player player, @NotNull Exception e) {
-                    }
-
-                    @Override
-                    public void onTrackSeeked(@NotNull Player player, long trackTime) {
-                        dacpPipe.sendPipeFlush();
-
-                        MetadataWrapper metadata = player.currentMetadata();
-                        if (metadata == null) return;
-
-                        PlayerMetrics playerMetrics = player.playerSession.currentMetrics();
-                        if (playerMetrics == null) return;
-
-                        dacpPipe.sendProgress(player.time(), metadata.duration(), playerMetrics.sampleRate);
-                    }
-
-                    @Override
-                    public void onMetadataAvailable(@NotNull Player player, @NotNull MetadataWrapper metadata) {
-                        dacpPipe.sendTrackInfo(metadata.getName(), metadata.getAlbumName(), metadata.getArtist());
-
-                        PlayerMetrics playerMetrics = player.playerSession.currentMetrics();
-                        if (playerMetrics != null)
-                            dacpPipe.sendProgress(player.time(), metadata.duration(), playerMetrics.sampleRate);
-
-                        try {
-                            dacpPipe.sendImage(currentCoverImage());
-                        } catch (IOException ex) {
-                            LOGGER.error("Failed getting cover image.", ex);
-                        }
-                    }
-
-                    @Override
-                    public void onPlaybackHaltStateChanged(@NotNull Player player, boolean halted, long trackTime) {
-                    }
-
-                    @Override
-                    public void onInactiveSession(@NotNull Player player, boolean timeout) {
-                    }
-
-                    @Override
-                    public void onVolumeChanged(@NotNull Player player, @Range(from = 0, to = 1) float volume) {
-                        dacpPipe.sendVolume(volume);
-                    }
-
-                    @Override
-                    public void onPanicState(@NotNull Player player) {
-                    }
-
-                    @Override
-                    public void onStartedLoading(@NotNull Player player) {
-                    }
-
-                    @Override
-                    public void onFinishedLoading(@NotNull Player player) {
-                        dacpPipe.sendPipeFlush();
-                    }
-                });
-            }
         }
 
         void playbackEnded() {

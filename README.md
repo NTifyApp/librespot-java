@@ -20,7 +20,6 @@ Its main features are:
 - Zeroconf (Spotify Connect)
 - Gapless playback
 - Mixed playlists (cuepoints and transitions)
-- DACP metadata pipe
 - Execute commands for various events
 - Android compatible (see [librespot-android](https://github.com/devgianlu/librespot-android))
 - Optional HTTP API (see [librespot-api](api))
