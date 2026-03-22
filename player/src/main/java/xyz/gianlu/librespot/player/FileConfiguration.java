@@ -16,6 +16,7 @@
  * Modifications made by [Gianluca Beil]:
  * - Remove log4j dependency and dependent code
  * - Removed Facebook authentication
+ * - Fixed broken code due to changes in Session.java for OAuth authentication
  */
 
 package xyz.gianlu.librespot.player;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import xyz.gianlu.librespot.ZeroconfServer;
 import xyz.gianlu.librespot.audio.decoders.AudioQuality;
 import xyz.gianlu.librespot.common.Utils;
+import xyz.gianlu.librespot.core.OAuth;
 import xyz.gianlu.librespot.core.Session;
 import xyz.gianlu.librespot.core.TimeProvider;
 
@@ -398,7 +400,9 @@ public final class FileConfiguration {
                 builder.stored();
                 break;
             case OAUTH:
-                builder.oauth();
+                builder.oauth((OAuth.CallbackURLReceiver) callbackURL -> {
+                }, (OAuth.CancelCallback) cancelFunction -> {
+                });
                 break;
             case ZEROCONF:
             default:

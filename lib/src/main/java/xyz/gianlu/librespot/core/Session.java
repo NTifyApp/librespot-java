@@ -15,6 +15,7 @@
  *
  * Modifications made by [Gianluca Beil]:
  * - Removed Facebook authentication
+ * - Added url and cancel callback to oauth method signature
  */
 
 package xyz.gianlu.librespot.core;
@@ -1009,12 +1010,12 @@ public final class Session implements Closeable {
         /**
          * Authenticates via OAuth flow, will prompt to open a link in the browser. This locks until completion.
          */
-        public Builder oauth() throws IOException {
+        public Builder oauth(OAuth.CallbackURLReceiver urlReceiver, OAuth.CancelCallback cancelCallback) throws IOException {
             if (conf.storeCredentials && conf.storedCredentialsFile.exists())
                 return stored();
 
-            try (OAuth oauth = new OAuth(KEYMASTER_CLIENT_ID, "http://127.0.0.1:5588/login")) {
-                loginCredentials = oauth.flow();
+            try (OAuth oauth = new OAuth(KEYMASTER_CLIENT_ID, "http://127.0.0.1:5588/login", cancelCallback)) {
+                loginCredentials = oauth.flow(urlReceiver);
             } catch (InterruptedException ignored) {
             }
 

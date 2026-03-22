@@ -34,21 +34,38 @@ public class OAuth implements Closeable {
     }
 
     private static final String SPOTIFY_TOKEN_DATA = "grant_type=authorization_code&client_id=%s&redirect_uri=%s&code=%s&code_verifier=%s";
-
     private final String clientId;
     private final String redirectUrl;
     private final SecureRandom random = new SecureRandom();
     private final Object credentialsLock = new Object();
-
     private String codeVerifier;
     private String code;
     private String token;
     private HttpServer server;
+    private boolean cancelled = false;
 
+    @FunctionalInterface
+    public interface CallbackURLReceiver {
+        void run(String callbackURL);
+    }
 
-    public OAuth(String clientId, String redirectUrl) {
+    public interface CancelCallback {
+        void cancel(Runnable cancelFunction);
+    }
+
+    public OAuth(String clientId, String redirectUrl, CancelCallback onCancelCallback) {
         this.clientId = clientId;
         this.redirectUrl = redirectUrl;
+        this.cancelled = false;
+        onCancelCallback.cancel(
+                () -> {
+                    try {
+                        cancel();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
     }
 
     private String generateCodeVerifier() {
@@ -117,7 +134,8 @@ public class OAuth implements Closeable {
         URL url = new URL(redirectUrl);
         server = HttpServer.create(new InetSocketAddress(url.getHost(), url.getPort()), 0);
         server.createContext("/login", exchange -> {
-            String response = "librespot-java received callback";
+            String response = "<a>You can close this window now</a>";
+            exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
             exchange.sendResponseHeaders(200, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -132,14 +150,31 @@ public class OAuth implements Closeable {
         LOGGER.info("OAuth: Waiting for callback on {}", server.getAddress());
     }
 
-    public Authentication.LoginCredentials flow() throws IOException, InterruptedException {
-        LOGGER.info("OAuth: Visit in your browser and log in: {} ", getAuthUrl());
+    private void cancel() throws IOException {
+        close();
+        cancelled = true;
+        synchronized (credentialsLock) {
+            credentialsLock.notifyAll();
+        }
+    }
+
+    public boolean wasCancelled() {
+        return cancelled;
+    }
+
+    public Authentication.LoginCredentials flow(CallbackURLReceiver receiver) throws IOException, InterruptedException {
+        String OAuthURL = getAuthUrl();
+        receiver.run(OAuthURL);
+        LOGGER.info("OAuth url: {} ", OAuthURL);
         runCallbackServer();
         synchronized (credentialsLock) {
             credentialsLock.wait();
         }
-        requestToken();
-        return getCredentials();
+        if(!cancelled) {
+            requestToken();
+            return getCredentials();
+        }
+        return null;
     }
 
     @Override
