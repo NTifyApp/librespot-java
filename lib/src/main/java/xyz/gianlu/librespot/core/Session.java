@@ -19,6 +19,7 @@
  * - Added the ability to provide a OkHttpClient instance
  * - Removed SSLSocketFactory being set when a proxy is specified
  * - Removed username and password authentication
+ * - Modified ping command
  */
 
 package xyz.gianlu.librespot.core;
@@ -1437,12 +1438,6 @@ public final class Session implements Closeable {
 
                 switch (cmd) {
                     case Ping:
-                        if (scheduledReconnect != null) scheduledReconnect.cancel(true);
-                        scheduledReconnect = scheduler.schedule(() -> {
-                            LOGGER.warn("Socket timed out. Reconnecting...");
-                            reconnect();
-                        }, 2 * 60 + configuration().connectionTimeout, TimeUnit.SECONDS);
-
                         TimeProvider.updateWithPing(packet.payload);
 
                         try {
