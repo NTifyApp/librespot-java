@@ -22,7 +22,6 @@ Its main features are:
 - Mixed playlists (cuepoints and transitions)
 - Execute commands for various events
 - Android compatible (see [librespot-android](https://github.com/devgianlu/librespot-android))
-- Optional HTTP API (see [librespot-api](api))
 - Supports custom sinks and decoders
 - ~~Actively developed and up-to-date with the latest internal API~~
 
