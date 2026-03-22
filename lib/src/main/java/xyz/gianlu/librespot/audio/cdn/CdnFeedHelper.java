@@ -12,6 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications made by [Gianluca Beil]:
+ * - Removed a cdn check that was needed a few years ago
  */
 
 package xyz.gianlu.librespot.audio.cdn;
@@ -46,12 +49,7 @@ public final class CdnFeedHelper {
 
     @NotNull
     private static HttpUrl getUrl(@NotNull Session session, @NotNull StorageResolveResponse resp) {
-        String selectedUrl = resp.getCdnurl(session.random().nextInt(resp.getCdnurlCount()));
-        while (selectedUrl.contains("audio4-gm-fb")) {
-            LOGGER.warn("getUrl picked CDN with known issues {} (forcing re-selection)", selectedUrl );
-            selectedUrl = resp.getCdnurl(session.random().nextInt(resp.getCdnurlCount()));
-        }
-        return HttpUrl.get(selectedUrl);
+        return HttpUrl.get(resp.getCdnurl(session.random().nextInt(resp.getCdnurlCount())));
     }
 
     public static @NotNull LoadedStream loadTrack(@NotNull Session session, Metadata.@NotNull Track track, Metadata.@NotNull AudioFile file,
