@@ -12,6 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications made by [Gianluca Beil]:
+ * - Removed outputPipe
  */
 
 package xyz.gianlu.librespot.player;
@@ -39,7 +42,6 @@ public final class PlayerConfiguration {
     public final AudioOutput output;
     public final String outputClass;
     public final Object[] outputClassParams;
-    public final File outputPipe;
     public final File metadataPipe;
     public final String[] mixerSearchKeywords;
     public final boolean logAvailableMixers;
@@ -54,7 +56,7 @@ public final class PlayerConfiguration {
     public final File localFilesPath;
 
     private PlayerConfiguration(AudioQuality preferredQuality, boolean enableNormalisation, boolean useAlbumGain, float normalisationPregain, boolean autoplayEnabled, int crossfadeDuration, boolean preloadEnabled,
-                                AudioOutput output, String outputClass, Object[] outputClassParams, File outputPipe, File metadataPipe, String[] mixerSearchKeywords, boolean logAvailableMixers, int releaseLineDelay,
+                                AudioOutput output, String outputClass, Object[] outputClassParams, File metadataPipe, String[] mixerSearchKeywords, boolean logAvailableMixers, int releaseLineDelay,
                                 int initialVolume, int volumeSteps, boolean bypassSinkVolume, File localFilesPath) {
         this.preferredQuality = preferredQuality;
         this.enableNormalisation = enableNormalisation;
@@ -65,7 +67,6 @@ public final class PlayerConfiguration {
         this.output = output;
         this.outputClass = outputClass;
         this.outputClassParams = outputClassParams;
-        this.outputPipe = outputPipe;
         this.metadataPipe = metadataPipe;
         this.mixerSearchKeywords = mixerSearchKeywords;
         this.logAvailableMixers = logAvailableMixers;
@@ -78,7 +79,7 @@ public final class PlayerConfiguration {
     }
 
     public enum AudioOutput {
-        MIXER, PIPE, STDOUT, CUSTOM
+        MIXER, CUSTOM
     }
 
     public final static class Builder {
@@ -95,7 +96,6 @@ public final class PlayerConfiguration {
         private AudioOutput output = AudioOutput.MIXER;
         private String outputClass;
         private Object[] outputClassParams;
-        private File outputPipe;
         private File metadataPipe;
         private String[] mixerSearchKeywords;
         private boolean logAvailableMixers = true;
@@ -157,11 +157,6 @@ public final class PlayerConfiguration {
             return this;
         }
 
-        public Builder setOutputPipe(File outputPipe) {
-            this.outputPipe = outputPipe;
-            return this;
-        }
-
         public Builder setMetadataPipe(File metadataPipe) {
             this.metadataPipe = metadataPipe;
             return this;
@@ -216,7 +211,7 @@ public final class PlayerConfiguration {
         @Contract(value = " -> new", pure = true)
         public @NotNull PlayerConfiguration build() {
             return new PlayerConfiguration(preferredQuality, enableNormalisation, useAlbumGain, normalisationPregain, autoplayEnabled, crossfadeDuration, preloadEnabled,
-                    output, outputClass, outputClassParams, outputPipe, metadataPipe, mixerSearchKeywords, logAvailableMixers, releaseLineDelay,
+                    output, outputClass, outputClassParams, metadataPipe, mixerSearchKeywords, logAvailableMixers, releaseLineDelay,
                     initialVolume, volumeSteps, bypassSinkVolume, localFilesPath);
         }
     }

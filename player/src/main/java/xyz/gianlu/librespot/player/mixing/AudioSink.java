@@ -12,6 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications made by [Gianluca Beil]:
+ * - Removed PIPE and STDOUT
  */
 
 package xyz.gianlu.librespot.player.mixing;
@@ -47,15 +50,6 @@ public final class AudioSink implements Runnable, Closeable {
             case MIXER:
                 output = initCustomOutputSink("xyz.gianlu.librespot.player.mixing.output.MixerOutput",
                         conf.mixerSearchKeywords, conf.logAvailableMixers);
-                break;
-            case PIPE:
-                if (conf.outputPipe == null)
-                    throw new IllegalArgumentException("Pipe file not configured!");
-
-                output = new PipeOutput(conf.outputPipe);
-                break;
-            case STDOUT:
-                output = new StreamOutput(System.out, false);
                 break;
             case CUSTOM:
                 if (conf.outputClass == null || conf.outputClass.isEmpty())
