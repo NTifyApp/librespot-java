@@ -50,19 +50,20 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.gianlu.librespot.Version;
+import xyz.gianlu.librespot.common.Utils;
 import xyz.gianlu.librespot.core.Session;
 import xyz.gianlu.librespot.core.TokenProvider;
 import xyz.gianlu.librespot.json.StationsWrapper;
 import xyz.gianlu.librespot.mercury.MercuryRequests;
 import xyz.gianlu.librespot.metadata.*;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 import static com.spotify.canvaz.CanvazOuterClass.EntityCanvazRequest;
 import static com.spotify.canvaz.CanvazOuterClass.EntityCanvazResponse;
@@ -364,7 +365,9 @@ public final class ApiClient {
 
             ResponseBody body;
             if ((body = resp.body()) == null) throw new IOException();
-            return JsonParser.parseString(body.string()).getAsJsonObject();
+            try (GZIPInputStream in = new GZIPInputStream(new ByteArrayInputStream(body.bytes())); Reader reader = new InputStreamReader(in)) {
+                return JsonParser.parseReader(reader).getAsJsonObject();
+            }
         }
     }
 
@@ -382,7 +385,9 @@ public final class ApiClient {
 
             ResponseBody body;
             if ((body = resp.body()) == null) throw new IOException();
-            return JsonParser.parseReader(body.charStream()).getAsJsonObject();
+            try (GZIPInputStream in = new GZIPInputStream(new ByteArrayInputStream(body.bytes())); Reader reader = new InputStreamReader(in)) {
+                return JsonParser.parseReader(reader).getAsJsonObject();
+            }
         }
     }
 
