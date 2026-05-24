@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.gianlu.librespot.Version;
 import xyz.gianlu.librespot.common.AsyncWorker;
+import xyz.gianlu.librespot.common.NameThreadFactory;
 import xyz.gianlu.librespot.common.ProtoUtils;
 import xyz.gianlu.librespot.common.Utils;
 import xyz.gianlu.librespot.core.Session;
@@ -45,7 +46,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
-import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.*;
 
 /**
  * @author Gianlu
@@ -69,6 +70,16 @@ public final class DeviceStateHandler implements Closeable, DealerClient.Message
     private volatile String connectionId = null;
     private volatile boolean closing = false;
     private String lastCommandSentByDeviceId;
+    private final ScheduledExecutorService flushScheduler = Executors.newSingleThreadScheduledExecutor(new NameThreadFactory((r) -> "flush-scheduler-" + r.hashCode()));
+    private ScheduledFuture<?> pendingFlush = null;
+    private Connect.PutStateReason pendingReason = null;
+    private int pendingPlayerTime = -1;
+    private Player.PlayerState pendingState = null;
+    private static final Set<Connect.PutStateReason> IMMEDIATE_REASONS = EnumSet.of(
+            Connect.PutStateReason.NEW_DEVICE,
+            Connect.PutStateReason.VOLUME_CHANGED
+    );
+
 
     public DeviceStateHandler(@NotNull Session session, @NotNull PlayerConfiguration conf) {
         this.session = session;
@@ -217,18 +228,41 @@ public final class DeviceStateHandler implements Closeable, DealerClient.Message
     public synchronized void updateState(@NotNull Connect.PutStateReason reason, int playerTime, @NotNull Player.PlayerState state) {
         if (connectionId == null) throw new IllegalStateException();
 
-        long timestamp = TimeProvider.currentTimeMillis();
+        // Update cached state
+        pendingReason = reason;
+        pendingPlayerTime = playerTime;
+        pendingState = state;
 
-        if (playerTime == -1)
+        if (IMMEDIATE_REASONS.contains(reason)) {
+            if (pendingFlush != null) pendingFlush.cancel(false);
+            pendingFlush = null;
+            flush();
+            return;
+        }
+
+        if (pendingFlush == null || pendingFlush.isDone()) {
+            pendingFlush = flushScheduler.schedule(() -> {
+                synchronized (this) { flush(); }
+            }, 1, TimeUnit.SECONDS);
+        }
+    }
+
+    private void flush() {
+        if (pendingState == null) return;
+
+        long timestamp = TimeProvider.currentTimeMillis();
+        if (pendingPlayerTime == -1)
             putState.clearHasBeenPlayingForMs();
         else
-            putState.setHasBeenPlayingForMs(Math.min(playerTime, timestamp - putState.getStartedPlayingAt()));
+            putState.setHasBeenPlayingForMs(Math.min(pendingPlayerTime, timestamp - putState.getStartedPlayingAt()));
 
-        putState.setPutStateReason(reason)
+        putState.setPutStateReason(pendingReason)
                 .setClientSideTimestamp(timestamp)
                 .getDeviceBuilder()
                 .setDeviceInfo(deviceInfo)
-                .setPlayerState(state);
+                .setPlayerState(pendingState);
+
+        pendingState = null;
 
         try {
             putStateWorker.submit(putState.build());
