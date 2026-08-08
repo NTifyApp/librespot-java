@@ -57,7 +57,7 @@ import xyz.gianlu.librespot.crypto.CipherPair;
 import xyz.gianlu.librespot.crypto.DiffieHellman;
 import xyz.gianlu.librespot.crypto.PBKDF2;
 import xyz.gianlu.librespot.crypto.Packet;
-import xyz.gianlu.librespot.api.ApiClient;
+import xyz.gianlu.librespot.dealer.ApiClient;
 import xyz.gianlu.librespot.dealer.DealerClient;
 import xyz.gianlu.librespot.mercury.MercuryClient;
 

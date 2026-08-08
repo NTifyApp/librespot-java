@@ -12,9 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Modifications made by [Gianluca Beil]:
- * - Fix code that was broken due to the ApiClient.java changes
  */
 
 package xyz.gianlu.librespot.audio;
@@ -106,7 +103,7 @@ public final class PlayableContentFeeder {
     }
 
     private @NotNull LoadedStream loadTrack(@NotNull TrackId id, @NotNull AudioQualityPicker audioQualityPicker, boolean preload, @Nullable HaltListener haltListener) throws IOException, TokenProvider.TokenException, ContentRestrictedException, CdnManager.CdnException {
-        Metadata.Track original = session.api().track().getMetadata(id);
+        Metadata.Track original = session.api().getMetadata4Track(id);
         Metadata.Track track = pickAlternativeIfNecessary(original);
         if (track == null) {
             String country = session.countryCode();
@@ -171,7 +168,7 @@ public final class PlayableContentFeeder {
 
     @NotNull
     private LoadedStream loadEpisode(@NotNull EpisodeId id, @NotNull AudioQualityPicker audioQualityPicker, boolean preload, @Nullable HaltListener haltListener) throws IOException, TokenProvider.TokenException, CdnManager.CdnException {
-        Metadata.Episode episode = session.api().episode().getMetadata(id);
+        Metadata.Episode episode = session.api().getMetadata4Episode(id);
 
         if (episode.hasExternalUrl()) {
             return CdnFeedHelper.loadEpisodeExternal(session, episode, haltListener);

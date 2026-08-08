@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import static xyz.gianlu.librespot.api.ApiClient.protoBody;
+import static xyz.gianlu.librespot.dealer.ApiClient.protoBody;
 
 /**
  * @author devgianlu
