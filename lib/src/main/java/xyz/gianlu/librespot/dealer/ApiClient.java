@@ -12,16 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications made by [Gianluca Beil]:
+ * - Added batched request helper
  */
 
 package xyz.gianlu.librespot.dealer;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.protobuf.Any;
 import com.google.protobuf.Message;
 import com.spotify.clienttoken.data.v0.Connectivity;
 import com.spotify.clienttoken.http.v0.ClientToken;
 import com.spotify.connectstate.Connect;
+import com.spotify.extendedmetadata.EntityExtensionDataOuterClass;
 import com.spotify.extendedmetadata.ExtendedMetadata;
 import com.spotify.extendedmetadata.ExtensionKindOuterClass;
 import com.spotify.metadata.Metadata;
@@ -40,7 +45,10 @@ import xyz.gianlu.librespot.mercury.MercuryRequests;
 import xyz.gianlu.librespot.metadata.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.spotify.canvaz.CanvazOuterClass.EntityCanvazRequest;
 import static com.spotify.canvaz.CanvazOuterClass.EntityCanvazResponse;
@@ -388,6 +396,50 @@ public final class ApiClient {
 
         private static void checkStatus(@NotNull Response resp) throws StatusCodeException {
             if (resp.code() != 200) throw new StatusCodeException(resp);
+        }
+    }
+
+    public static class BatchedRequestHelper {
+        private final ExtendedMetadata.BatchedEntityRequest.Builder builder = ExtendedMetadata.BatchedEntityRequest.newBuilder();
+        private final Map<String, RequestResolvedCallback> callbacks = new HashMap<>();
+
+        public interface RequestResolvedCallback {
+            void onRequestResolved(Any... data) throws Exception;
+        }
+
+        public interface RequestFailedCallback {
+            void onRequestFailed(Exception exception, ExtendedMetadata.BatchedExtensionResponse response);
+        }
+
+        public void addRequest(ExtendedMetadata.EntityRequest request, RequestResolvedCallback callback) {
+            builder.addEntityRequest(request);
+            callbacks.put(request.getEntityUri(), callback);
+        }
+
+        public void execute(ApiClient apiClient, @Nullable RequestFailedCallback requestFailedCallback) throws IOException, TokenProvider.TokenException {
+            ExtendedMetadata.BatchedExtensionResponse response = apiClient.getExtendedMetadata(builder.build());
+            apiClient.checkExtendedMetadataResponse(response);
+            Map<String, List<Any>> dataMap = new HashMap<>();
+            try {
+                for (ExtendedMetadata.EntityExtensionDataArray metadataEntry : response.getExtendedMetadataList()) {
+                    for (EntityExtensionDataOuterClass.EntityExtensionData extData : metadataEntry.getExtensionDataList()) {
+                        if (extData.getHeader().getStatusCode() != 200) continue;
+                        List<Any> data = dataMap.getOrDefault(extData.getEntityUri(), new ArrayList<>());
+                        data.add(extData.getExtensionData());
+                        dataMap.put(extData.getEntityUri(), data);
+                    }
+                }
+                for (ExtendedMetadata.EntityRequest req : builder.getEntityRequestList()) {
+                    String uri = req.getEntityUri();
+                    List<Any> data = dataMap.get(uri);
+                    if (data == null) continue;
+                    callbacks.getOrDefault(uri, ignored -> {
+                    }).onRequestResolved(data.toArray(new Any[0]));
+                }
+            } catch (Exception e) {
+                if (requestFailedCallback != null)
+                    requestFailedCallback.onRequestFailed(e, response);
+            }
         }
     }
 }
