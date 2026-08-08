@@ -382,7 +382,12 @@ public final class ApiClient {
         this.clientToken = clientToken;
     }
 
-    public String getClientToken() {
+    public String getClientToken() throws IOException {
+        if (clientToken == null) {
+            clientToken = this.clientToken().getGrantedToken().getToken();
+            LOGGER.debug("Updated client token: {}", clientToken);
+        }
+
         return this.clientToken;
     }
 
