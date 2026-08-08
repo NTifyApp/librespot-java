@@ -374,6 +374,10 @@ public final class ApiClient {
         this.clientToken = clientToken;
     }
 
+    public String getClientToken() {
+        return this.clientToken;
+    }
+
     public static class StatusCodeException extends IOException {
         public final int code;
 
